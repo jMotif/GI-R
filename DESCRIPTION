@@ -1,0 +1,20 @@
+Package: GI
+Title: Provides implementations of grammatical inference algorithms
+Version: 0.0.1
+Date: 2013-09-17
+Authors@R: person("Pavel", "Senin", , "seninp@gmail.com", c("aut", "cre"))
+Description: Currently provides a RePair implementation
+License: GPL-2
+Depends:
+    R (>= 3.1.0),
+    Rcpp (>= 0.11.1)
+Imports:
+    stats
+Suggests:
+    testthat
+LinkingTo:
+    Rcpp
+LazyData: true
+SystemRequirements: C++11
+License: GPL-2
+RoxygenNote: 5.0.1
