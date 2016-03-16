@@ -26,7 +26,6 @@ std::unordered_map<int, std::string> str_to_repair_grammar(CharacterVector str) 
   r0.reserve(_count_spaces(&s));
 
   // the queue
-  repair_priority_queue digram_queue;
   std::unordered_map<std::string, std::vector<int>> digram_table;
 
   // tokenizer variables and counters
@@ -64,7 +63,6 @@ std::unordered_map<int, std::string> str_to_repair_grammar(CharacterVector str) 
       rec->prev = r0[token_counter - 1];
     }
 
-
     // do the input string housekeeping
     s.erase(0, pos + delimiter.length());
     old_token = token;
@@ -88,6 +86,15 @@ std::unordered_map<int, std::string> str_to_repair_grammar(CharacterVector str) 
     for (auto i = it->second.begin(); i != it->second.end(); ++i)
       Rcout << *i << ' ';
     Rcout << std::endl;
+  }
+
+  // populate the priority queue and the index -> digram record map
+  //
+  repair_priority_queue digram_queue;
+  for(std::unordered_map<std::string, std::vector<int>>::iterator it = digram_table.begin();
+      it != digram_table.end(); ++it) {
+    RepairDigramRecord dr = new RepairDigramRecord(e.getKey(), e.getValue().size());
+    digram_queue.enqueue(dr);
   }
 
 

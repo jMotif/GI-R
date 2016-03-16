@@ -58,6 +58,18 @@ class repair_digram {
 public:
   std::string digram;
   int freq;
+  repair_digram(const std::string str, int index);
+};
+
+// the symbol (token) wrapper for the priority queue data structure0
+//
+class repair_digram_record {
+public:
+  repair_digram* payload;
+  repair_digram_record* prev;
+  repair_digram_record* next;
+  repair_digram_record( repair_digram* drecord );
+  ~repair_digram_record();
 };
 
 class repair_pqueue_node {
