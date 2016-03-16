@@ -93,9 +93,13 @@ std::unordered_map<int, std::string> str_to_repair_grammar(CharacterVector str) 
   repair_priority_queue digram_queue;
   for(std::unordered_map<std::string, std::vector<int>>::iterator it = digram_table.begin();
       it != digram_table.end(); ++it) {
-    RepairDigramRecord dr = new RepairDigramRecord(e.getKey(), e.getValue().size());
-    digram_queue.enqueue(dr);
+    repair_digram* digram = new repair_digram( it->first, it->second.size() );
+    digram_queue.enqueue(digram);
   }
+  return res;
+  // all digrams are accounted for... print their state
+  Rcout << "\nthe digrams queue\n=================" << std::endl;
+  Rcout << digram_queue.to_string() << std::endl;
 
 
   return res;

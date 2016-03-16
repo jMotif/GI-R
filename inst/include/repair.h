@@ -61,17 +61,6 @@ public:
   repair_digram(const std::string str, int index);
 };
 
-// the symbol (token) wrapper for the priority queue data structure0
-//
-class repair_digram_record {
-public:
-  repair_digram* payload;
-  repair_digram_record* prev;
-  repair_digram_record* next;
-  repair_digram_record( repair_digram* drecord );
-  ~repair_digram_record();
-};
-
 class repair_pqueue_node {
 public:
   repair_pqueue_node* prev;
@@ -91,10 +80,13 @@ public:
 
 class repair_priority_queue {
 public:
-  repair_pqueue_node* head;
+  repair_pqueue_node* queue_head;
   std::unordered_map<std::string, repair_pqueue_node*> nodes;
-
-  repair_digram* enqueue(repair_digram* digram);
+  repair_priority_queue() {
+    queue_head = nullptr;
+    std::unordered_map<std::string, repair_pqueue_node*> nodes;
+  }
+  repair_digram* enqueue( repair_digram* digram );
   repair_digram* dequeue();
   repair_digram* peek();
   repair_digram* get(std::string *digram_string);
@@ -102,6 +94,7 @@ public:
   bool contains_digram(std::string *digram_string);
   std::vector<repair_digram> to_array();
   void remove_node(repair_pqueue_node* node);
+  std::string to_string();
 };
 
 int _count_spaces(std::string *s);

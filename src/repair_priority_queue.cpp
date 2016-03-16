@@ -1,7 +1,6 @@
 #include <repair.h>
 using namespace Rcpp ;
 
-
 repair_digram* repair_priority_queue::enqueue(repair_digram* digram) {
 
   if (nodes.find(digram->digram) != nodes.end()) {
@@ -9,23 +8,28 @@ repair_digram* repair_priority_queue::enqueue(repair_digram* digram) {
     return nullptr;
   }
 
+  Rcout << "enqueueing " << digram ->digram << " : " << digram ->freq << std::endl;
   // create a new node
-  repair_pqueue_node nn(digram);
+  repair_pqueue_node* nn = new repair_pqueue_node(digram);
 
   // place it into the queue if it's empty
-  if (nullptr == head) {
-      head = &nn;
+  if (nullptr == queue_head) {
+      queue_head = nn;
+      Rcout << "queue was empty, the node is the head: " << queue_head->payload->digram
+            << " : " << queue_head->payload ->freq << std::endl;
   }
 
   // if new node has lesser or equal than head frequency... this going to be the new head
-  else if (nn.payload->freq >= head->payload->freq) {
-    head->prev = &nn;
-    nn.next = head;
-    head = &nn;
+  else if (nn->payload->freq >= queue_head->payload->freq) {
+    queue_head->prev = nn;
+    nn->next = queue_head;
+    queue_head = nn;
+    Rcout << "the freq is greater than head, re-headed the queue: "
+    << queue_head->payload->digram << " : " << queue_head->payload ->freq << std::endl;
   }
   // in all other cases find a good place in the existing queue, starting from the head
   else {
-    repair_pqueue_node* curr_node = head;
+    repair_pqueue_node* curr_node = queue_head;
     while (nullptr != curr_node->next) {
       //
       // if current node has lesser or equal frequency... it should be after nn
@@ -33,12 +37,12 @@ repair_digram* repair_priority_queue::enqueue(repair_digram* digram) {
       // remember we are pointing on the second node inside this loop or onto second to tail
       // node
       //
-      if (nn.payload->freq >= curr_node->payload->freq) {
+      if (nn->payload->freq >= curr_node->payload->freq) {
         repair_pqueue_node* prev_node = curr_node->prev;
-          prev_node->next = &nn;
-          nn.prev = prev_node;
-          curr_node->prev = &nn;
-          nn.next = curr_node;
+          prev_node->next = nn;
+          nn->prev = prev_node;
+          curr_node->prev = nn;
+          nn->next = curr_node;
           break; // the element has been placed
         }
         curr_node = curr_node->next;
@@ -46,26 +50,26 @@ repair_digram* repair_priority_queue::enqueue(repair_digram* digram) {
       // check if loop was broken by condition, not by placement
       if (nullptr == curr_node->next) {
         // so, current_node points on the tail...
-        if (nn.payload->freq >= curr_node->payload->freq) {
+        if (nn->payload->freq >= curr_node->payload->freq) {
           // insert just before...
           repair_pqueue_node* prev_node = curr_node->prev;
-          prev_node->next = &nn;
-          nn.prev = prev_node;
-          curr_node->prev = &nn;
-          nn.next = curr_node;
+          prev_node->next = nn;
+          nn->prev = prev_node;
+          curr_node->prev = nn;
+          nn->next = curr_node;
         }
         else {
           // or make a new tail
-          nn.prev = curr_node;
-          curr_node->next = &nn;
+          nn->prev = curr_node;
+          curr_node->next = nn;
         }
       }
 
   }
   // also save the element in the index store
-  std::string key = nn.payload->digram;
-  nodes.emplace(key, &nn);
-  return nn.payload;
+  std::string key = nn->payload->digram;
+  nodes.emplace(key, nn);
+  return nn->payload;
 }
 
 void repair_priority_queue::remove_node(repair_pqueue_node* node){
@@ -124,9 +128,9 @@ repair_digram* repair_priority_queue::update_digram_frequency(
 
     // we hit the head, oops... make it the new head
     if (nullptr == current_node) {
-      altered_node->next = head;
-      head->prev = altered_node;
-      head = altered_node;
+      altered_node->next = queue_head;
+      queue_head->prev = altered_node;
+      queue_head = altered_node;
     }
     else {
       if (nullptr == current_node->next) {
@@ -162,10 +166,10 @@ repair_digram* repair_priority_queue::update_digram_frequency(
     if (nullptr == current_node->next) { // we hit the tail
       if (altered_node->payload->freq > current_node->payload->freq) {
         // place before tail
-        if (head == current_node) {
+        if (queue_head == current_node) {
           altered_node->next = current_node;
           current_node->prev = altered_node;
-          this->head = altered_node;
+          this->queue_head = altered_node;
         }
         else {
           altered_node->next = current_node;
@@ -183,8 +187,8 @@ repair_digram* repair_priority_queue::update_digram_frequency(
       altered_node->next = current_node;
       altered_node->prev = current_node->prev;
       if (nullptr == current_node->prev) {
-        // i.e. we are in da head...
-        this->head = altered_node;
+        // i.e. we are in da queue_head...
+        this->queue_head = altered_node;
       }
       else {
         current_node->prev->next = altered_node;
@@ -198,12 +202,12 @@ repair_digram* repair_priority_queue::update_digram_frequency(
 }
 
 repair_digram* repair_priority_queue::dequeue() {
-  if(NULL != head){
-    nodes.erase(head->payload->digram);
-    repair_pqueue_node* res = head;
-    head = head->next;
-    if(NULL != head){
-      head->prev = NULL;
+  if(NULL != queue_head){
+    nodes.erase(queue_head->payload->digram);
+    repair_pqueue_node* res = queue_head;
+    queue_head = queue_head->next;
+    if(NULL != queue_head){
+      queue_head->prev = NULL;
     }
     return res->payload;
   }
@@ -212,9 +216,21 @@ repair_digram* repair_priority_queue::dequeue() {
 
 std::vector<repair_digram> repair_priority_queue::to_array() {
   std::vector<repair_digram> res;
-  repair_pqueue_node* cp = head;
+  repair_pqueue_node* cp = queue_head;
   while(NULL != cp->next){
     res.push_back(*cp->payload);
   }
   return res;
 }
+
+std::string repair_priority_queue::to_string() {
+  std::stringstream res;
+  repair_pqueue_node* ptr = queue_head;
+  res << ptr->payload->digram << " : " << ptr->payload->freq;
+//   while(nullptr != ptr) {
+//     res << ptr->payload->digram << " : " << ptr->payload->freq;
+//   }
+  std::string str = res.str();
+  return str;
+ }
+
