@@ -45,7 +45,7 @@ repair_digram* repair_priority_queue::enqueue(repair_digram* digram) {
       }
       // check if loop was broken by condition, not by placement
       if (nullptr == curr_node->next) {
-        // so, currentNode points on the tail...
+        // so, current_node points on the tail...
         if (nn.payload->freq >= curr_node->payload->freq) {
           // insert just before...
           repair_pqueue_node* prev_node = curr_node->prev;
@@ -63,8 +63,138 @@ repair_digram* repair_priority_queue::enqueue(repair_digram* digram) {
 
   }
   // also save the element in the index store
-  nodes.emplace(nn.payload->digram, &nn);
+  std::string key = nn.payload->digram;
+  nodes.emplace(key, &nn);
   return nn.payload;
+}
+
+void repair_priority_queue::remove_node(repair_pqueue_node* node){
+
+};
+
+repair_digram* repair_priority_queue::update_digram_frequency(
+    std::string *digram_string, int new_value){
+
+  // if element doesnt exist
+  if (nodes.find(*digram_string) == nodes.end()) {
+    return nullptr;
+  }
+
+  // get a pointer on that node
+  repair_pqueue_node* altered_node = nodes.find(*digram_string)->second;
+
+  // the trivial case
+  if (new_value == altered_node->payload->freq) {
+    return altered_node->payload;
+  }
+
+  // simply evict the node if the freq is too low
+  if (2 > new_value) {
+    remove_node(altered_node);
+    nodes.erase(altered_node->payload->digram);
+    return nullptr;
+  }
+
+  // update the frequency
+  int oldFreq = altered_node->payload->freq;
+  altered_node->payload->freq = new_value;
+
+  // if the list is just too damn short
+  if (1 == nodes.size()) {
+    return altered_node->payload;
+  }
+
+  // if we have to push the element up in the list
+  if (new_value > oldFreq) {
+
+    // going up here
+    repair_pqueue_node* current_node = altered_node->prev;
+    if (nullptr == altered_node->prev) {
+      current_node = altered_node->next;
+    }
+
+    remove_node(altered_node);
+    altered_node->next = nullptr;
+    altered_node->prev = nullptr;
+
+    while ((nullptr != current_node) &&
+           (current_node->payload->freq < altered_node->payload->freq)) {
+      current_node = current_node->prev;
+    }
+
+    // we hit the head, oops... make it the new head
+    if (nullptr == current_node) {
+      altered_node->next = head;
+      head->prev = altered_node;
+      head = altered_node;
+    }
+    else {
+      if (nullptr == current_node->next) {
+        current_node->next = altered_node;
+        altered_node->prev = current_node;
+      }
+      else {
+        current_node->next->prev = altered_node;
+        altered_node->next = current_node->next;
+        current_node->next = altered_node;
+        altered_node->prev = current_node;
+      }
+    }
+  }
+  else {
+
+    // what if this is a tail already?
+    if (nullptr == altered_node->next) {
+      return altered_node->payload;
+    }
+
+    // going down..
+    repair_pqueue_node* current_node = altered_node->next;
+    remove_node(altered_node);
+    altered_node->next = nullptr;
+    altered_node->prev = nullptr;
+
+    while (nullptr != current_node->next &&
+           current_node->payload->freq > altered_node->payload->freq) {
+      current_node = current_node->next;
+    }
+
+    if (nullptr == current_node->next) { // we hit the tail
+      if (altered_node->payload->freq > current_node->payload->freq) {
+        // place before tail
+        if (head == current_node) {
+          altered_node->next = current_node;
+          current_node->prev = altered_node;
+          this->head = altered_node;
+        }
+        else {
+          altered_node->next = current_node;
+          altered_node->prev = current_node->prev;
+          current_node->prev->next = altered_node;
+          current_node->prev = altered_node;
+        }
+      }
+      else {
+        current_node->next = altered_node;
+        altered_node->prev = current_node;
+      }
+    }
+    else { // place element just before of cp
+      altered_node->next = current_node;
+      altered_node->prev = current_node->prev;
+      if (nullptr == current_node->prev) {
+        // i.e. we are in da head...
+        this->head = altered_node;
+      }
+      else {
+        current_node->prev->next = altered_node;
+        current_node->prev = altered_node;
+      }
+    }
+  }
+
+  return altered_node->payload;
+
 }
 
 repair_digram* repair_priority_queue::dequeue() {
