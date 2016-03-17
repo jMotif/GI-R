@@ -234,9 +234,9 @@ std::vector<repair_digram> repair_priority_queue::to_array() {
 std::string repair_priority_queue::to_string() {
   std::stringstream res;
   repair_pqueue_node* ptr = queue_head;
-  res << ptr->payload->digram << " : " << ptr->payload->freq;
   while(nullptr != ptr) {
-    res << ptr->payload->digram << " : " << ptr->payload->freq;
+    res << ptr->payload->digram << " : " << ptr->payload->freq << std::endl;
+    ptr = ptr->next;
   }
   std::string str = res.str();
   return str;
