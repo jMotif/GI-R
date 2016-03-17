@@ -82,14 +82,15 @@ std::unordered_map<int, std::string> str_to_repair_grammar(CharacterVector str) 
   Rcout << "\nthe digrams table\n=================" << std::endl;
   for(std::unordered_map<std::string, std::vector<int>>::iterator it = digram_table.begin();
       it != digram_table.end(); ++it) {
-    Rcout << it->first << " ";
+    Rcout << it->first << " [";
     for (auto i = it->second.begin(); i != it->second.end(); ++i)
-      Rcout << *i << ' ';
-    Rcout << std::endl;
+      Rcout << *i << ", ";
+    Rcout << "]" << std::endl;
   }
 
   // populate the priority queue and the index -> digram record map
   //
+  Rcout << "\npopulating the queue\n=================" << std::endl;
   repair_priority_queue digram_queue;
   for(std::unordered_map<std::string, std::vector<int>>::iterator it = digram_table.begin();
       it != digram_table.end(); ++it) {
