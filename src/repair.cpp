@@ -96,7 +96,7 @@ std::unordered_map<int, std::string> str_to_repair_grammar(CharacterVector str) 
     repair_digram* digram = new repair_digram( it->first, it->second.size() );
     digram_queue.enqueue(digram);
   }
-  return res;
+
   // all digrams are accounted for... print their state
   Rcout << "\nthe digrams queue\n=================" << std::endl;
   Rcout << digram_queue.to_string() << std::endl;

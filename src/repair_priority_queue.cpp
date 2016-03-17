@@ -15,7 +15,7 @@ repair_digram* repair_priority_queue::enqueue(repair_digram* digram) {
   // place it into the queue if it's empty
   if (nullptr == queue_head) {
       queue_head = nn;
-      Rcout << "queue was empty, the node is the head: " << queue_head->payload->digram
+      Rcout << "queue was empty, the new node is the head: " << queue_head->payload->digram
             << " : " << queue_head->payload ->freq << std::endl;
   }
 
@@ -24,7 +24,7 @@ repair_digram* repair_priority_queue::enqueue(repair_digram* digram) {
     queue_head->prev = nn;
     nn->next = queue_head;
     queue_head = nn;
-    Rcout << "the freq is greater than head, re-headed the queue: "
+    Rcout << "the nn freq is greater than or equal to head, re-headed the queue: "
     << queue_head->payload->digram << " : " << queue_head->payload ->freq << std::endl;
   }
   // in all other cases find a good place in the existing queue, starting from the head
@@ -38,7 +38,11 @@ repair_digram* repair_priority_queue::enqueue(repair_digram* digram) {
       // node
       //
       if (nn->payload->freq >= curr_node->payload->freq) {
-        repair_pqueue_node* prev_node = curr_node->prev;
+          Rcout << "found a place for nn before: "
+                << curr_node->payload->digram << " : " << curr_node->payload->freq << std::endl;
+          repair_pqueue_node* prev_node = curr_node->prev;
+          Rcout << " after : "
+                << prev_node->payload->digram << " : " << prev_node->payload->freq << std::endl;
           prev_node->next = nn;
           nn->prev = prev_node;
           curr_node->prev = nn;
@@ -53,6 +57,8 @@ repair_digram* repair_priority_queue::enqueue(repair_digram* digram) {
         if (nn->payload->freq >= curr_node->payload->freq) {
           // insert just before...
           repair_pqueue_node* prev_node = curr_node->prev;
+          Rcout << "found a place for nn before the tail: "
+                << curr_node->payload->digram << " : " << curr_node->payload->freq << std::endl;
           prev_node->next = nn;
           nn->prev = prev_node;
           curr_node->prev = nn;
@@ -60,6 +66,8 @@ repair_digram* repair_priority_queue::enqueue(repair_digram* digram) {
         }
         else {
           // or make a new tail
+          Rcout << "found a place for nn -- new tail after: "
+                << curr_node->payload->digram << " : " << curr_node->payload->freq << std::endl;
           nn->prev = curr_node;
           curr_node->next = nn;
         }
@@ -227,9 +235,9 @@ std::string repair_priority_queue::to_string() {
   std::stringstream res;
   repair_pqueue_node* ptr = queue_head;
   res << ptr->payload->digram << " : " << ptr->payload->freq;
-//   while(nullptr != ptr) {
-//     res << ptr->payload->digram << " : " << ptr->payload->freq;
-//   }
+  while(nullptr != ptr) {
+    res << ptr->payload->digram << " : " << ptr->payload->freq;
+  }
   std::string str = res.str();
   return str;
  }
