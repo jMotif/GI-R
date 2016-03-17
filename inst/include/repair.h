@@ -20,7 +20,9 @@ public:
   repair_symbol(const std::string str, int index);
   bool is_guard();
   int get_level();
-  ~repair_symbol();
+  std::string* get_expanded_string(){
+    return &payload;
+  }
 };
 
 // the symbol (token) wrapper for the string data structure0
@@ -31,18 +33,19 @@ public:
   repair_symbol_record* prev;
   repair_symbol_record* next;
   repair_symbol_record( repair_symbol* symbol );
-  ~repair_symbol_record();
 };
 
 class repair_rule {
 public:
   int id;
   int rule_use;
-  std::string rule_string;
+  repair_symbol* first;
+  repair_symbol* second;
   std::string expanded_rule_string;
   std::vector<int> occurrences;
-  repair_rule();
-  repair_rule(int r_id, std::string rule_str, std::string expanded_rule_str);
+  repair_rule(){
+    id = -1; rule_use = 0; first = nullptr; second = nullptr;
+  };
   std::string get_rule_string();
 };
 
@@ -51,7 +54,12 @@ public:
   repair_rule r;
   repair_guard();
   repair_guard(repair_rule rule, int idx);
-  bool is_guard();
+  bool is_guard(){
+    return true;
+  }
+  std::string* get_expanded_string(){
+    return &r.expanded_rule_string;
+  }
 };
 
 class repair_digram {

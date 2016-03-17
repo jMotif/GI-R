@@ -12,7 +12,9 @@ using namespace Rcpp;
 //' str_to_repair_grammar("abc abc cba cba bac xxx abc abc cba cba bac")
 // [[Rcpp::export]]
 std::unordered_map<int, std::string> str_to_repair_grammar(CharacterVector str) {
+
   std::unordered_map<int, std::string> res;
+  std::unordered_map<int, repair_rule> grammar;
 
   // convert the string
   std::string s = Rcpp::as<std::string>(str);
@@ -98,10 +100,40 @@ std::unordered_map<int, std::string> str_to_repair_grammar(CharacterVector str) 
     digram_queue.enqueue(digram);
   }
 
-  // all digrams are accounted for... print their state
+  // all digrams are pushed to the queue, see those
   Rcout << "\nthe digrams queue\n=================" << std::endl;
   Rcout << digram_queue.to_string() << std::endl;
 
+  repair_digram* entry = digram_queue.dequeue();
+  while (entry != nullptr) {
+    std::unordered_map<std::string, std::vector<int>>::iterator it =
+      digram_table.find(entry->digram);
+    Rcout <<"\npopped digram: " << it->first << " [";
+    for (auto i = it->second.begin(); i != it->second.end(); ++i)
+      Rcout << *i << ", ";
+    Rcout << "]" << std::endl;
 
+    repair_symbol_record* first = r0[it->second[0]];
+    repair_symbol_record* second = r0[it->second[0]+1];
+    Rcout << " *** " << first->payload->payload << " @" << first->payload->str_index;
+    Rcout << " *** " << second->payload->payload << " @" << second->payload->str_index;
+
+    // create a new rule using the diram data
+    repair_rule* r = new repair_rule();
+    r->id = grammar.size()+1;
+    r->first = first->payload;
+    r->second = second->payload;
+    // r.assign_level();
+    r->expanded_rule_string = *(r->first->get_expanded_string()) + " " +
+      *(r->second->get_expanded_string());
+      Rcout << " *** rule: " << r->get_rule_string() << " -> " <<
+        r->expanded_rule_string << std::endl;
+      grammar.insert(std::pair<int, repair_rule>(r->id, *r));
+
+    // digram occurrences processing...
+
+
+    entry = digram_queue.dequeue();
+  }
   return res;
 }

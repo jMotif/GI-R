@@ -9,8 +9,3 @@ repair_symbol_record::repair_symbol_record( repair_symbol* symbol ) {
   prev = nullptr;
 }
 
-// destructor
-//
-repair_symbol_record::~repair_symbol_record(){
-
-}

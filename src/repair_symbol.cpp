@@ -20,8 +20,3 @@ int repair_symbol::get_level() {
   return 0;
 }
 
-// destructor
-//
-repair_symbol::~repair_symbol(){
-
-}
