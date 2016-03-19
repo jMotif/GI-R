@@ -23,6 +23,9 @@ public:
   std::string* get_expanded_string(){
     return &payload;
   }
+  std::string to_string(){
+    return payload;
+  }
 };
 
 // the symbol (token) wrapper for the string data structure0
@@ -51,14 +54,21 @@ public:
 
 class repair_guard: public repair_symbol {
 public:
-  repair_rule r;
+  repair_rule* r;
   repair_guard();
-  repair_guard(repair_rule rule, int idx);
+  repair_guard(repair_rule* rule, int idx){
+    r = rule;
+    payload = r->get_rule_string();
+    str_index = idx;
+  }
   bool is_guard(){
     return true;
   }
-  std::string* get_expanded_string(){
-    return &r.expanded_rule_string;
+  std::string get_expanded_string(){
+    return r->expanded_rule_string;
+  }
+  std::string to_string(){
+    return r->get_rule_string();
   }
 };
 

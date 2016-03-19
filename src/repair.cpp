@@ -106,19 +106,26 @@ std::unordered_map<int, std::string> str_to_repair_grammar(CharacterVector str) 
 
   repair_digram* entry = digram_queue.dequeue();
   while (entry != nullptr) {
+
+    std::vector<int> occurrences;
+    occurrences.reserve(entry->freq);
+
+    // the digram entry from the master table
     std::unordered_map<std::string, std::vector<int>>::iterator it =
       digram_table.find(entry->digram);
     Rcout <<"\npopped digram: " << it->first << " [";
-    for (auto i = it->second.begin(); i != it->second.end(); ++i)
+    for (auto i = it->second.begin(); i != it->second.end(); ++i) {
       Rcout << *i << ", ";
+      occurrences.push_back(*i);
+    }
     Rcout << "]" << std::endl;
 
+    // work on the NEW RULE construction
     repair_symbol_record* first = r0[it->second[0]];
     repair_symbol_record* second = r0[it->second[0]+1];
     Rcout << " *** " << first->payload->payload << " @" << first->payload->str_index;
     Rcout << " *** " << second->payload->payload << " @" << second->payload->str_index;
-
-    // create a new rule using the diram data
+    //
     repair_rule* r = new repair_rule();
     r->id = grammar.size()+1;
     r->first = first->payload;
@@ -131,7 +138,56 @@ std::unordered_map<int, std::string> str_to_repair_grammar(CharacterVector str) 
       grammar.insert(std::pair<int, repair_rule>(r->id, *r));
 
     // digram occurrences processing...
+    while(!occurrences.empty()){
 
+      // secure the index
+      int occ = occurrences[occurrences.size()-1];
+      occurrences.pop_back();
+
+      // create a placeholder
+      repair_symbol_record* curr_sym = r0[occ];
+      repair_symbol_record* next_sym = r0[occ + 1];
+
+      // make up a guard
+      repair_guard* g = new repair_guard(r, occ);
+      repair_symbol_record* guard = new repair_symbol_record(g);
+
+      // alter the R0
+      r0[occ] = guard;
+
+      repair_symbol_record* next_not_null = r0[occ]->next;
+      guard->next = next_not_null;
+      if(nullptr!=next_not_null){
+        next_not_null->prev = guard;
+      }
+
+      //
+      repair_symbol_record* prev_not_null = r0[occ]->prev;
+      guard->prev = prev_not_null;
+      if(nullptr!=prev_not_null){
+        prev_not_null->next = guard;
+      }
+
+      if(occ > 0 && nullptr!=prev_not_null){
+
+        std::string ole_left_digram = prev_not_null->payload->to_string() + " "
+        + curr_sym->payload->to_string();
+        std::vector<int> occurrences = digram_table[ole_left_digram];
+        occurrences.erase(std::remove(occurrences.begin(), occurrences.end(),
+                                      prev_not_null->payload->str_index), occurrences.end());
+
+        if (oldLeftDigram.equalsIgnoreCase(entry.str)) {
+          loopOccurrences.remove(Integer.valueOf(prevNotNull.getIndex()));
+        }
+        digramsQueue.updateDigramFrequency(oldLeftDigram, newFreq);
+
+      }
+
+      Rcout << occ << ", ";
+
+
+    }
+    Rcout << std::endl;
 
     entry = digram_queue.dequeue();
   }
