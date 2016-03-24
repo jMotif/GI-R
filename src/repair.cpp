@@ -248,6 +248,14 @@ std::unordered_map<int, std::string> str_to_repair_grammar(CharacterVector str) 
         new_digrams.emplace(new_left_digram);
       }
 
+      // walk over the R0
+      Rcout << "\nthe R0: ";
+      ptr = r0[0];
+      do {
+        Rcout << ptr->payload->payload << " ";
+        ptr = ptr->next;
+      } while(ptr != nullptr);
+      Rcout << std::endl;
       Rcout << "\nthe digrams table\n=================" << std::endl;
       for(std::unordered_map<std::string, std::vector<int>>::iterator it = digram_table.begin();
           it != digram_table.end(); ++it) {
@@ -325,6 +333,14 @@ std::unordered_map<int, std::string> str_to_repair_grammar(CharacterVector str) 
 
       }
 
+      // walk over the R0
+      Rcout << "\nthe R0: ";
+      ptr = r0[0];
+      do {
+        Rcout << ptr->payload->payload << " ";
+        ptr = ptr->next;
+      } while(ptr != nullptr);
+      Rcout << std::endl;
       Rcout << "\nthe digrams table\n=================" << std::endl;
       for(std::unordered_map<std::string, std::vector<int>>::iterator it = digram_table.begin();
           it != digram_table.end(); ++it) {
@@ -339,9 +355,28 @@ std::unordered_map<int, std::string> str_to_repair_grammar(CharacterVector str) 
 
     }
 
-    return res;
-
     entry = digram_queue.dequeue();
   }
+
+  // walk over the R0
+  Rcout << "\nthe R0: ";
+  ptr = r0[0];
+  do {
+    Rcout << ptr->payload->payload << " ";
+    ptr = ptr->next;
+  } while(ptr != nullptr);
+  Rcout << std::endl;
+  Rcout << "\nthe digrams table\n=================" << std::endl;
+  for(std::unordered_map<std::string, std::vector<int>>::iterator it = digram_table.begin();
+      it != digram_table.end(); ++it) {
+    Rcout << it->first << " [";
+    for (auto i = it->second.begin(); i != it->second.end(); ++i)
+      Rcout << *i << ", ";
+    Rcout << "]" << std::endl;
+  }
+  // all digrams are pushed to the queue, see those
+  Rcout << "\nthe digrams queue\n=================" << std::endl;
+  Rcout << digram_queue.to_string() << std::endl;
+
   return res;
 }

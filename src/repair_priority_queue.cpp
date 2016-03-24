@@ -81,7 +81,29 @@ repair_digram* repair_priority_queue::enqueue(repair_digram* digram) {
 }
 
 void repair_priority_queue::remove_node(repair_pqueue_node* node){
-
+  // the head case
+  //
+  if(nullptr == node->prev){
+    if(nullptr != node->next){
+      queue_head = node->next;
+      queue_head->prev = nullptr;
+    } else {
+      queue_head = nullptr;
+    }
+  }
+  // the tail case
+  //
+  else if (nullptr == node->next){
+    if(nullptr != node->prev){
+      node->prev->next = nullptr;
+    }
+  }
+  // all other cases
+  //
+  else{
+    node->prev->next = node->next;
+    node->next->prev = node->prev;
+  }
 };
 
 repair_digram* repair_priority_queue::update_digram_frequency(
@@ -94,14 +116,18 @@ repair_digram* repair_priority_queue::update_digram_frequency(
 
   // get a pointer on that node
   repair_pqueue_node* altered_node = nodes.find(*digram_string)->second;
+  Rcout << " +++ correcting the digram frequency for " << altered_node->payload->digram <<
+    " from " << altered_node->payload->freq << " to " << new_value << std::endl;
 
   // the trivial case
   if (new_value == altered_node->payload->freq) {
+    Rcout << " +++ new value is same as the old, exiting... " << std::endl;
     return altered_node->payload;
   }
 
   // simply evict the node if the freq is too low
   if (2 > new_value) {
+    Rcout << " +++ new value is less than 2, cleaning up the entry... " << std::endl;
     remove_node(altered_node);
     nodes.erase(altered_node->payload->digram);
     return nullptr;
@@ -113,6 +139,7 @@ repair_digram* repair_priority_queue::update_digram_frequency(
 
   // if the list is just too damn short
   if (1 == nodes.size()) {
+    Rcout << " +++ queue is a single element, just updating..." << std::endl;
     return altered_node->payload;
   }
 
