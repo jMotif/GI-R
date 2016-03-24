@@ -360,16 +360,23 @@ std::unordered_map<int, std::string> str_to_repair_grammar(CharacterVector str) 
 
     // update the priority queue with new digrams ...
     //
+    int i=0;
     for (std::unordered_set<std::string>::iterator it = new_digrams.begin(); it != new_digrams.end(); ++it) {
       std::string st = *it;
+      Rcout << "  *** checking on new digram " << st << " : " << digram_table[st].size() << std::endl;
       if(digram_table[st].size() > 1){
         if(digram_queue.contains_digram(&st)){
+          Rcout << "gotta update ... " << std::endl;
+          return res;
           digram_queue.update_digram_frequency(&st, digram_table[st].size());
         } else {
+          Rcout << "adding a digram ... " << std::endl;
           repair_digram* digram = new repair_digram( st, digram_table[st].size() );
           digram_queue.enqueue(digram);
         }
       }
+      i++;
+      if(i>2){return res;}
     }
     digram_table.erase(entry->digram);
 
