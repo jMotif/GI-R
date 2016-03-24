@@ -269,3 +269,10 @@ std::string repair_priority_queue::to_string() {
   return str;
  }
 
+bool repair_priority_queue::contains_digram(std::string *digram_string) {
+  if (nodes.find(*digram_string) == nodes.end()) {
+    return false;
+  }
+  return true;
+}
+

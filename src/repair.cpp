@@ -354,6 +354,24 @@ std::unordered_map<int, std::string> str_to_repair_grammar(CharacterVector str) 
       Rcout << digram_queue.to_string() << std::endl;
 
     }
+    // clean up the digram we have worked with ...
+    //
+    digram_table.erase(entry->digram);
+
+    // update the priority queue with new digrams ...
+    //
+    for (std::unordered_set<std::string>::iterator it = new_digrams.begin(); it != new_digrams.end(); ++it) {
+      std::string st = *it;
+      if(digram_table[st].size() > 1){
+        if(digram_queue.contains_digram(&st)){
+          digram_queue.update_digram_frequency(&st, digram_table[st].size());
+        } else {
+          repair_digram* digram = new repair_digram( st, digram_table[st].size() );
+          digram_queue.enqueue(digram);
+        }
+      }
+    }
+    digram_table.erase(entry->digram);
 
     entry = digram_queue.dequeue();
   }
