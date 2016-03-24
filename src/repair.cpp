@@ -130,7 +130,7 @@ std::unordered_map<int, std::string> str_to_repair_grammar(CharacterVector str) 
 
     // work on the NEW RULE construction
     repair_symbol_record* first = r0[it->second[0]];
-    repair_symbol_record* second = r0[it->second[0]+1];
+    repair_symbol_record* second = first->next;
     Rcout << " *** the initial digram instance " << std::endl;
     Rcout << " *** " << first->payload->payload << " @" << first->payload->str_index;
     Rcout << " *** " << second->payload->payload << " @" << second->payload->str_index << std::endl;
@@ -275,10 +275,6 @@ std::unordered_map<int, std::string> str_to_repair_grammar(CharacterVector str) 
       Rcout << "\nthe digrams queue\n=================" << std::endl;
       Rcout << digram_queue.to_string() << std::endl;
 
-      if(i>1){
-        return res;
-      }
-
       // ### now need to fix the OLE right digram
       // ###
       repair_symbol_record* after_second = second->next;
@@ -342,10 +338,6 @@ std::unordered_map<int, std::string> str_to_repair_grammar(CharacterVector str) 
 
         new_digrams.emplace(new_right_digram);
 
-      }
-
-      if(i>1){
-        return res;
       }
 
     }
