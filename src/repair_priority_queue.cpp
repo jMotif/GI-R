@@ -237,12 +237,12 @@ repair_digram* repair_priority_queue::update_digram_frequency(
 }
 
 repair_digram* repair_priority_queue::dequeue() {
-  if(NULL != queue_head){
+  if(nullptr != queue_head){
     nodes.erase(queue_head->payload->digram);
     repair_pqueue_node* res = queue_head;
     queue_head = queue_head->next;
-    if(NULL != queue_head){
-      queue_head->prev = NULL;
+    if(nullptr != queue_head){
+      queue_head->prev = nullptr;
     }
     return res->payload;
   }

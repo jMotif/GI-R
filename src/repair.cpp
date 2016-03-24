@@ -106,7 +106,11 @@ std::unordered_map<int, std::string> str_to_repair_grammar(CharacterVector str) 
   Rcout << "\nthe digrams queue\n=================" << std::endl;
   Rcout << digram_queue.to_string() << std::endl;
 
-  std::unordered_set<std::string> new_digrams;
+  //
+  /// the main loop begins...
+  //
+  //
+  int i=0;
   repair_digram* entry = digram_queue.dequeue();
   while (entry != nullptr) {
 
@@ -116,7 +120,8 @@ std::unordered_map<int, std::string> str_to_repair_grammar(CharacterVector str) 
     // the digram entry from the master table
     std::unordered_map<std::string, std::vector<int>>::iterator it =
       digram_table.find(entry->digram);
-    Rcout <<"\npopped digram: " << it->first << " [";
+
+     Rcout <<"\npopped digram: " << it->first << " [";
     for (auto i = it->second.begin(); i != it->second.end(); ++i) {
       Rcout << *i << ", ";
       occurrences.push_back(*i);
@@ -137,10 +142,12 @@ std::unordered_map<int, std::string> str_to_repair_grammar(CharacterVector str) 
     // r.assign_level();
     r->expanded_rule_string = *(r->first->get_expanded_string()) + " " +
       *(r->second->get_expanded_string());
-      Rcout << " *** the rule: " << r->get_rule_string() << " -> " <<
-        r->expanded_rule_string << std::endl;
-      grammar.insert(std::pair<int, repair_rule>(r->id, *r));
+    Rcout << " *** the rule: " << r->get_rule_string() << " -> " <<
+       r->expanded_rule_string << std::endl;
+    grammar.insert(std::pair<int, repair_rule>(r->id, *r));
 
+
+    std::unordered_set<std::string> new_digrams;
     // digram occurrences processing, iterating over each position...
     while(!occurrences.empty()){
 
@@ -268,6 +275,10 @@ std::unordered_map<int, std::string> str_to_repair_grammar(CharacterVector str) 
       Rcout << "\nthe digrams queue\n=================" << std::endl;
       Rcout << digram_queue.to_string() << std::endl;
 
+      if(i>1){
+        return res;
+      }
+
       // ### now need to fix the OLE right digram
       // ###
       repair_symbol_record* after_second = second->next;
@@ -333,25 +344,9 @@ std::unordered_map<int, std::string> str_to_repair_grammar(CharacterVector str) 
 
       }
 
-      // walk over the R0
-      Rcout << "\nthe R0: ";
-      ptr = r0[0];
-      do {
-        Rcout << ptr->payload->payload << " ";
-        ptr = ptr->next;
-      } while(ptr != nullptr);
-      Rcout << std::endl;
-      Rcout << "\nthe digrams table\n=================" << std::endl;
-      for(std::unordered_map<std::string, std::vector<int>>::iterator it = digram_table.begin();
-          it != digram_table.end(); ++it) {
-        Rcout << it->first << " [";
-        for (auto i = it->second.begin(); i != it->second.end(); ++i)
-          Rcout << *i << ", ";
-        Rcout << "]" << std::endl;
+      if(i>1){
+        return res;
       }
-      // all digrams are pushed to the queue, see those
-      Rcout << "\nthe digrams queue\n=================" << std::endl;
-      Rcout << digram_queue.to_string() << std::endl;
 
     }
     // clean up the digram we have worked with ...
@@ -360,7 +355,6 @@ std::unordered_map<int, std::string> str_to_repair_grammar(CharacterVector str) 
 
     // update the priority queue with new digrams ...
     //
-    int i=0;
     Rcout << "  *** new digrams size " << new_digrams.size() << " : ";
     for(std::string s : new_digrams)
       Rcout << s << ' ';
@@ -368,7 +362,6 @@ std::unordered_map<int, std::string> str_to_repair_grammar(CharacterVector str) 
 
     for (std::string st : new_digrams) {
       Rcout << "  *** checking on new digram " << st  << std::endl;
-      if(i>2){return res;}
       if(digram_table[st].size() > 1){
         if(digram_queue.contains_digram(&st)){
           Rcout << "gotta update ... " << std::endl;
@@ -380,12 +373,38 @@ std::unordered_map<int, std::string> str_to_repair_grammar(CharacterVector str) 
           digram_queue.enqueue(digram);
         }
       }
-      i++;
-      if(i>2){return res;}
-
     }
 
+
+    // walk over the R0
+    Rcout << "\nXXXXXX the R0: ";
+    ptr = r0[0];
+    do {
+      Rcout << ptr->payload->payload << " ";
+      ptr = ptr->next;
+    } while(ptr != nullptr);
+    Rcout << std::endl;
+    Rcout << "\nthe digrams table\n=================" << std::endl;
+    for(std::unordered_map<std::string, std::vector<int>>::iterator it = digram_table.begin();
+        it != digram_table.end(); ++it) {
+      Rcout << it->first << " [";
+      for (auto i = it->second.begin(); i != it->second.end(); ++i)
+        Rcout << *i << ", ";
+      Rcout << "]" << std::endl;
+    }
+    // all digrams are pushed to the queue, see those
+    Rcout << "\nthe digrams queue\n=================" << std::endl;
+    Rcout << digram_queue.to_string() << std::endl;
+
+
     entry = digram_queue.dequeue();
+      if(i>2){
+      if(nullptr != entry){
+      Rcout << " current entry "<< entry <<std::endl;
+      }
+     return res;
+    }
+      i++;
   }
 
   // walk over the R0
