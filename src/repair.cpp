@@ -434,6 +434,7 @@ std::unordered_map<int, std::string> str_to_repair_grammar(CharacterVector str) 
   for(std::map<int, repair_rule*>::iterator it = grammar.begin();
       it != grammar.end(); ++it) {
     Rcout << it->second->get_rule_string() << " : "
+          << it->second->get_rule_string() << " : "
           << it->second->expanded_rule_string << " [";
     for (auto i = it->second->occurrences.begin(); i != it->second->occurrences.end(); ++i)
       Rcout << *i << ", ";
