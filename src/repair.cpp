@@ -14,7 +14,7 @@ using namespace Rcpp;
 std::unordered_map<int, std::string> str_to_repair_grammar(CharacterVector str) {
 
   std::unordered_map<int, std::string> res;
-  std::unordered_map<int, repair_rule> grammar;
+  std::map<int, repair_rule*> grammar;
 
   // convert the string
   std::string s = Rcpp::as<std::string>(str);
@@ -140,11 +140,26 @@ std::unordered_map<int, std::string> str_to_repair_grammar(CharacterVector str) 
     r->first = first->payload;
     r->second = second->payload;
     // r.assign_level();
-    r->expanded_rule_string = *(r->first->get_expanded_string()) + " " +
-      *(r->second->get_expanded_string());
+    std::stringstream ss;
+    if(r->first->is_guard()){
+      repair_guard* ptr = static_cast<repair_guard*>( r->first );
+      ss << ptr->get_expanded_string();
+    } else {
+      repair_symbol* ptr = r->first;
+      ss << ptr->to_string();
+    }
+    ss << " ";
+    if(r->second->is_guard()){
+      repair_guard* ptr = static_cast<repair_guard*>( r->second );
+      ss << ptr->get_expanded_string();
+    } else {
+      repair_symbol* ptr = r->second;
+      ss << ptr->to_string();
+    }
+    r->expanded_rule_string = ss.str();
     Rcout << " *** the rule: " << r->get_rule_string() << " -> " <<
        r->expanded_rule_string << std::endl;
-    grammar.insert(std::pair<int, repair_rule>(r->id, *r));
+    grammar.insert(std::pair<int, repair_rule*>(r->id, r));
 
 
     std::unordered_set<std::string> new_digrams;
@@ -166,6 +181,7 @@ std::unordered_map<int, std::string> str_to_repair_grammar(CharacterVector str) 
 
       // make up a guard for the rul created before
       repair_guard* guard = new repair_guard(r, occ);
+      r->occurrences.push_back(occ);
 
       // alter the R0 by placing the guard...
       curr_sym->payload = guard;
@@ -390,12 +406,7 @@ std::unordered_map<int, std::string> str_to_repair_grammar(CharacterVector str) 
 
 
     entry = digram_queue.dequeue();
-      if(i>2){
-      if(nullptr != entry){
-      Rcout << " current entry "<< entry <<std::endl;
-      }
-     return res;
-    }
+
       i++;
   }
 
@@ -418,6 +429,16 @@ std::unordered_map<int, std::string> str_to_repair_grammar(CharacterVector str) 
   // all digrams are pushed to the queue, see those
   Rcout << "\nthe digrams queue\n=================" << std::endl;
   Rcout << digram_queue.to_string() << std::endl;
+
+  Rcout << "\nthe Grammar\n=================" << std::endl;
+  for(std::map<int, repair_rule*>::iterator it = grammar.begin();
+      it != grammar.end(); ++it) {
+    Rcout << it->second->get_rule_string() << " : "
+          << it->second->expanded_rule_string << " [";
+    for (auto i = it->second->occurrences.begin(); i != it->second->occurrences.end(); ++i)
+      Rcout << *i << ", ";
+    Rcout << "]" << std::endl;
+  }
 
   return res;
 }

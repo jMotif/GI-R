@@ -18,11 +18,10 @@ public:
     str_index = -1;
   };
   repair_symbol(const std::string str, int index);
-  bool is_guard();
-  int get_level();
-  std::string* get_expanded_string(){
-    return &payload;
+  virtual bool is_guard(){
+    return false;
   }
+  int get_level();
   std::string to_string(){
     return payload;
   }
